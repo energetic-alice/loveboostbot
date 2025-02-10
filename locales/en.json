@@ -1,0 +1,17 @@
+{
+    "welcome": "Welcome to LoveBoostBot ❤️ Who are you?",
+    "choose_language": "Choose your language:",
+    "profile_set": "Great! I'll send you daily love-boosting ideas.",
+    "like": "Glad you liked it! ❤️",
+    "dislike": "Here’s another idea:",
+    "done": "Awesome! Love is in the details. 💕",
+    "daily_reminder": "Here's your daily love-boosting idea:",
+    "menu": {
+      "girl": "👩 I'm a girl",
+      "boy": "👨 I'm a boy",
+      "couple": "💑 We're a couple",
+      "change_language": "🌍 Change language"
+    },
+    "next": "Here’s another idea! 🔄",
+        "dislike_limit_reached": "Sorry, but you reached dislike limit! Try again tomorrow!"
+  }
