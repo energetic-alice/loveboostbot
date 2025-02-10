@@ -222,5 +222,11 @@ cron.schedule('0 9 * * *', () => {
   console.log('✅ Daily reminders sent!');
 });
 
-bot.launch();
+bot.launch({
+  webhook: {
+    domain: 'https://loveboostbot.onrender.com',
+    port: process.env.PORT || 3000,
+  },
+});
+
 console.log('🚀 LoveBoostBot is running...');
