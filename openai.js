@@ -49,6 +49,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
         ❗ **Important instructions:**
         - The idea should be provocative and arousing, leaving no ambiguity that it’s about sex.
+        - The idea should be a single, clear, and concise activity, not combining multiple actions.
         - Avoid any non-sexual activities like movies, playlists, picnics, or general bonding exercises.
         - No vague descriptions like “build emotional connection” — focus ONLY on sexual interaction.
         - Ensure the idea is logically clear, with no awkward phrasing or incomplete thoughts.
