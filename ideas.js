@@ -22,7 +22,6 @@ const spicyIdeas = {
     { id: 11, text: 'Try a new romantic massage technique tonight.' },
     { id: 12, text: 'Send a flirty voice message during the day.' },
     { id: 13, text: "Play a 'secret fantasies' game together." },
-    { id: 14, text: 'Write each other secret notes and hide them around the house.' },
     { id: 16, text: 'Blindfold your partner and surprise them with gentle touches using different textures.' },
     { id: 17, text: 'Play a “truth or dare” game with a spicy twist.' },
     { id: 18, text: 'Try role-playing a fantasy you’ve never explored before.' },
@@ -38,7 +37,6 @@ const spicyIdeas = {
     { id: 26, text: 'Попробуйте новую технику массажа сегодня вечером.' },
     { id: 27, text: 'Отправьте кокетливое голосовое сообщение в течение дня.' },
     { id: 28, text: "Поиграйте в игру 'секретные фантазии'." },
-    { id: 29, text: 'Напишите друг другу секретные записки и спрячьте их по дому.' },
   ],
 };
 

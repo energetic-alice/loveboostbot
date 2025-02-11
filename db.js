@@ -93,7 +93,7 @@ function wasIdeaShown(userId, ideaId, callback) {
 
 // Получаем обратную связь пользователя
 function getUserFeedback(userId, callback) {
-  db.all(`SELECT idea_id, feedback FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
+  db.all(`SELECT idea_id, idea_text, feedback FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
     if (err) {
       console.error('Ошибка при получении обратной связи:', err);
       callback([]);

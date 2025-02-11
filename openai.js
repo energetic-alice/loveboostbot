@@ -17,17 +17,9 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       // Получаем последние 10 идей
       const lastIdeas = feedback.slice(-10).map(item => item.idea_text);
-      const avoidIdeas = [...new Set([...lastIdeas, ...dislikes])];
+      const avoidIdeasText = [...new Set([...lastIdeas, ...dislikes])].map(idea => `- ${idea}`).join('\n');
 
-      let prompt = `Here are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}\n\n`;
-
-      prompt += `Now generate a NEW unique ${type === 'spicy' ? 'spicy (18+)' : 'romantic'} idea for a couple. `;
-      if (likes.length > 0) {
-        prompt += `The user enjoyed ideas like: ${likes.join(', ')}. `;
-      }
-      if (avoidIdeas.length > 0) {
-        prompt += `Avoid ideas similar to: ${avoidIdeas.join(', ')}. `;
-      }
+      let prompt = `Generate a NEW unique ${type === 'spicy' ? 'spicy (18+)' : 'romantic'} idea for a couple. `;
 
       // 🎯 Чёткая инструкция:
       prompt += `The idea should:
@@ -75,12 +67,22 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
         Invalid ideas:
         - "Cook a romantic dinner together." ❌ Not sexual
         - "Go for a long walk and hold hands." ❌ Not intimate enough
-
+        
         **Write the idea as a clear, standalone suggestion without extra explanations.** 
         `;
       }
 
       prompt += language === 'ru' ? ` Ответь на русском языке.` : ` Respond in English.`;
+
+      if (likes.length > 0) {
+        prompt += `\n\nThe user enjoyed ideas like: ${likes.join(', ')}. `;
+      }
+      if (avoidIdeasText.length > 0) {
+        prompt += `Avoid ideas similar to: ${avoidIdeasText}. `;
+      }
+
+      prompt += `\n\nHere are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}`;
+
       console.log('Prompt for user ', userId, ':', prompt);
 
       try {
