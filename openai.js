@@ -17,7 +17,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       // Получаем последние 10 идей
       const lastIdeas = feedback.slice(-10).map(item => item.idea_text);
-      const avoidIdeasText = [...new Set([...lastIdeas, ...dislikes])].map(idea => `- ${idea}`).join('\n');
+      const avoidIdeasText = [...new Set([...lastIdeas, ...dislikes])].join('\n- ');
 
       let prompt = `Generate a NEW unique ${type === 'spicy' ? 'spicy (18+)' : 'romantic'} idea for a couple. `;
 
@@ -31,11 +31,11 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       - Focus on emotional connection and playful interaction.
       - Only provide the idea itself. Do NOT include any explanations, reasons, benefits, or motivational phrases. Just the idea, as a single complete sentence or short paragraph.
       - Do NOT include activities that require specific items that might not be readily available at home, such as board games, special costumes, candles, or unique props. Only suggest ideas that can be done with common household items or no items at all.
-      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.`;
+      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.
+      - Avoid generating ideas similar to the following recent ideas:\n- ${avoidIdeasText}`;
 
       if (type === 'spicy') {
         prompt += `
-
         Generate an **explicitly sexual 18+ idea** for couples.
         
         The idea must include clear elements of sexual activity, such as:
@@ -67,7 +67,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
         Invalid ideas:
         - "Cook a romantic dinner together." ❌ Not sexual
         - "Go for a long walk and hold hands." ❌ Not intimate enough
-        
+
         **Write the idea as a clear, standalone suggestion without extra explanations.** 
         `;
       }
@@ -75,10 +75,10 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       prompt += language === 'ru' ? ` Ответь на русском языке.` : ` Respond in English.`;
 
       if (likes.length > 0) {
-        prompt += `\n\nThe user enjoyed ideas like: ${likes.join(', ')}. `;
+        prompt += `\n\nThe user enjoyed ideas like:\n- ${likes.join('\n- ')}. `;
       }
       if (avoidIdeasText.length > 0) {
-        prompt += `Avoid ideas similar to: ${avoidIdeasText}. `;
+        prompt += `Avoid ideas similar to:\n- ${avoidIdeasText}. `;
       }
 
       prompt += `\n\nHere are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}`;
