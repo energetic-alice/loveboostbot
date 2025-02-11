@@ -17,6 +17,7 @@ db.serialize(() => {
       idea_id INTEGER,
       idea_text TEXT,
       feedback TEXT, -- 'like', 'dislike', 'done'
+      type TEXT, -- 'romantic' или 'spicy'
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, idea_id)
     )
@@ -74,10 +75,10 @@ function getAllUsers(callback) {
 }
 
 // Сохраняем показанную идею и обратную связь
-function saveUserIdea(userId, ideaId, ideaText, feedback) {
+function saveUserIdea(userId, ideaId, ideaText, feedback, type) {
   db.run(
-    `INSERT OR REPLACE INTO user_ideas (user_id, idea_id, idea_text, feedback) VALUES (?, ?, ?, ?)`,
-    [userId, ideaId, ideaText, feedback],
+    `INSERT OR REPLACE INTO user_ideas (user_id, idea_id, idea_text, feedback, type) VALUES (?, ?, ?, ?, ?)`,
+    [userId, ideaId, ideaText, feedback, type],
     err => {
       if (err) console.error('Ошибка при сохранении идеи и обратной связи:', err);
     },
@@ -93,7 +94,7 @@ function wasIdeaShown(userId, ideaId, callback) {
 
 // Получаем обратную связь пользователя
 function getUserFeedback(userId, callback) {
-  db.all(`SELECT idea_id, idea_text, feedback FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
+  db.all(`SELECT idea_text, feedback, type FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
     if (err) {
       console.error('Ошибка при получении обратной связи:', err);
       callback([]);
