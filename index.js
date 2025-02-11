@@ -6,7 +6,7 @@ import fs from 'fs';
 import cron from 'node-cron';
 import OpenAI from 'openai';
 import { generatePersonalizedIdea } from './openai.js';
-import { saveUserFeedback } from './db.js';
+import { saveUserIdea } from './db.js';
 
 // Используем переменные окружения
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -150,7 +150,7 @@ async function sendIdea(ctx, type = null) {
 
 bot.action(/^like_(romantic|spicy)$/, ctx => {
   const ideaText = ctx.update.callback_query.message.text;
-  saveUserFeedback(ctx.from.id, ideaText, 'like');
+  saveUserIdea(ctx.from.id, new Date().getTime(), ideaText, 'like');
   ctx.reply('❤️ Рад, что понравилось!');
 });
 
@@ -164,7 +164,7 @@ bot.action(/dislike_(.+)/, async ctx => {
   db.getTodayDislikeCount(userId, count => {
     console.log(`Количество дизлайков сегодня: ${count}`); // ✅ Проверка лимита
     if (count < 3) {
-      saveUserFeedback(userId, ideaText, 'dislike'); // ✅ Сохраняем дизлайк
+      saveUserIdea(userId, new Date().getTime(), ideaText, 'dislike'); // ✅ Сохраняем дизлайк
       ctx.reply('😕 Попробуем что-то другое...');
 
       // ✅ Отправляем новую идею ТОЛЬКО того же типа

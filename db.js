@@ -10,20 +10,12 @@ db.serialize(() => {
     language TEXT DEFAULT 'en'
   )`);
 
-  // Создание таблицы для хранения показанных идей
+  // Объединенная таблица для хранения показанных идей и обратной связи
   db.run(`
-    CREATE TABLE IF NOT EXISTS shown_ideas (
+    CREATE TABLE IF NOT EXISTS user_ideas (
       user_id INTEGER,
       idea_id INTEGER,
-      PRIMARY KEY (user_id, idea_id)
-    )
-  `);
-
-  // 🔥 Новая таблица для хранения обратной связи
-  db.run(`
-    CREATE TABLE IF NOT EXISTS user_feedback (
-      user_id INTEGER,
-      idea_id INTEGER,
+      idea_text TEXT,
       feedback TEXT, -- 'like', 'dislike', 'done'
       timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
       PRIMARY KEY (user_id, idea_id)
@@ -31,49 +23,49 @@ db.serialize(() => {
   `);
 });
 
-// ✅ Сохраняем профиль
+// Сохраняем профиль пользователя
 function saveProfile(userId, profile) {
   db.run(
     `INSERT INTO users (id, profile) VALUES (?, ?)
         ON CONFLICT(id) DO UPDATE SET profile = excluded.profile`,
     [userId, profile],
     err => {
-      if (err) console.error('Error saving profile:', err);
+      if (err) console.error('Ошибка при сохранении профиля:', err);
     },
   );
 }
 
-// ✅ Исправлено сохранение языка
+// Сохраняем язык пользователя
 function saveLanguage(userId, language) {
   db.run(
     `INSERT INTO users (id, language) VALUES (?, ?)
         ON CONFLICT(id) DO UPDATE SET language = excluded.language`,
     [userId, language],
     err => {
-      if (err) console.error('Error saving language:', err);
-      console.log(`Language saved for user ${userId}: ${language}`);
+      if (err) console.error('Ошибка при сохранении языка:', err);
+      console.log(`Язык сохранен для пользователя ${userId}: ${language}`);
     },
   );
 }
 
-// ✅ Получение языка
+// Получаем язык пользователя
 function getLanguage(userId, callback) {
   db.get(`SELECT language FROM users WHERE id = ?`, [userId], (err, row) => {
     if (err) {
-      console.error('Error retrieving language:', err);
-      callback('en'); // По умолчанию
+      console.error('Ошибка при получении языка:', err);
+      callback('en'); // Значение по умолчанию
     } else {
-      console.log(`Language retrieved for user ${userId}: ${row ? row.language : 'en'}`);
+      console.log(`Язык получен для пользователя ${userId}: ${row ? row.language : 'en'}`);
       callback(row ? row.language : 'en');
     }
   });
 }
 
-// Получение всех пользователей
+// Получаем всех пользователей
 function getAllUsers(callback) {
   db.all(`SELECT id, language FROM users`, (err, rows) => {
     if (err) {
-      console.error('Error retrieving users:', err);
+      console.error('Ошибка при получении пользователей:', err);
       callback([]);
     } else {
       callback(rows);
@@ -81,40 +73,27 @@ function getAllUsers(callback) {
   });
 }
 
-// Сохраняем ID показанной идеи
-function saveShownIdea(userId, ideaId) {
-  db.run('INSERT OR IGNORE INTO shown_ideas (user_id, idea_id) VALUES (?, ?)', [userId, ideaId]);
-}
-
-// Проверяем, была ли идея уже показана
-function wasIdeaShown(userId, ideaId, callback) {
-  db.get('SELECT 1 FROM shown_ideas WHERE user_id = ? AND idea_id = ?', [userId, ideaId], (err, row) => {
-    callback(!!row);
-  });
-}
-
-db.run(`
-  CREATE TABLE IF NOT EXISTS user_feedback (
-    user_id INTEGER,
-    idea_id TEXT,
-    feedback TEXT, -- 'like', 'dislike', 'done'
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (user_id, idea_id)
-  )
-`);
-
-function saveUserFeedback(userId, ideaId, feedback) {
+// Сохраняем показанную идею и обратную связь
+function saveUserIdea(userId, ideaId, ideaText, feedback) {
   db.run(
-    `INSERT OR REPLACE INTO user_feedback (user_id, idea_id, feedback) VALUES (?, ?, ?)`,
-    [userId, ideaId, feedback],
+    `INSERT OR REPLACE INTO user_ideas (user_id, idea_id, idea_text, feedback) VALUES (?, ?, ?, ?)`,
+    [userId, ideaId, ideaText, feedback],
     err => {
-      if (err) console.error('Ошибка при сохранении обратной связи:', err);
+      if (err) console.error('Ошибка при сохранении идеи и обратной связи:', err);
     },
   );
 }
 
+// Проверяем, была ли идея уже показана
+function wasIdeaShown(userId, ideaId, callback) {
+  db.get('SELECT 1 FROM user_ideas WHERE user_id = ? AND idea_id = ?', [userId, ideaId], (err, row) => {
+    callback(!!row);
+  });
+}
+
+// Получаем обратную связь пользователя
 function getUserFeedback(userId, callback) {
-  db.all(`SELECT idea_id, feedback FROM user_feedback WHERE user_id = ?`, [userId], (err, rows) => {
+  db.all(`SELECT idea_id, feedback FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
     if (err) {
       console.error('Ошибка при получении обратной связи:', err);
       callback([]);
@@ -124,16 +103,17 @@ function getUserFeedback(userId, callback) {
   });
 }
 
+// Получаем количество дизлайков за сегодня
 function getTodayDislikeCount(userId, callback) {
   const today = new Date().toISOString().split('T')[0];
   db.get(
     `SELECT COUNT(*) as count 
-     FROM user_feedback 
+     FROM user_ideas 
      WHERE user_id = ? AND feedback = 'dislike' AND DATE(timestamp) = ?`,
     [userId, today],
     (err, row) => {
       if (err) {
-        console.error('Error fetching dislikes:', err);
+        console.error('Ошибка при получении количества дизлайков:', err);
         callback(0);
       } else {
         callback(row.count);
@@ -147,9 +127,8 @@ export {
   saveLanguage,
   getLanguage,
   getAllUsers,
-  saveShownIdea,
+  saveUserIdea,
   wasIdeaShown,
-  saveUserFeedback,
   getUserFeedback,
   getTodayDislikeCount,
 };

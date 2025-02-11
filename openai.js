@@ -39,6 +39,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       if (type === 'spicy') {
         prompt += `
+       
         Generate an **explicitly sexual 18+ idea** for couples.
         
         The idea must include clear elements of sexual activity, such as:
@@ -71,6 +72,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
         - "Cook a romantic dinner together." ❌ Not sexual
         - "Go for a long walk and hold hands." ❌ Not intimate enough
 
+
         **Write the idea as a clear, standalone suggestion without extra explanations.** 
 
         `;
@@ -101,6 +103,10 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
         if (!/[.!?]$/.test(idea)) {
           idea += '.';
         }
+
+        // Сохранение идеи в базу данных
+        const ideaId = new Date().getTime(); // Используем временную метку как уникальный ID
+        db.saveUserIdea(userId, ideaId, idea, 'shown');
 
         resolve(idea);
       } catch (error) {
