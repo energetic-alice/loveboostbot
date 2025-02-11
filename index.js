@@ -199,27 +199,17 @@ bot.action(/done_(.+)/, ctx => {
   ctx.reply('✅ Здорово, что вы это сделали!');
 });
 
-// Ежедневная рассылка идей в 9:00 утра
+// Ежедневная рассылка идей в 9:00 утра по времени сервера
 cron.schedule('0 9 * * *', () => {
-  //cron.schedule('*/2 * * * *', () => {
-  // Каждые 2 минуты для теста
   db.getAllUsers(users => {
     users.forEach(user => {
       t(user.id, 'daily_reminder', text => {
-        const idea = ideas.getRandomIdea(user.language);
-        bot.telegram.sendMessage(
-          user.id,
-          `${text}\n\n${idea.text}`,
-          Markup.inlineKeyboard([
-            [Markup.button.callback('❤️', 'like')],
-            [Markup.button.callback('❌', 'dislike')],
-            [Markup.button.callback('✔️', 'done')],
-          ]),
-        );
+        sendIdea(user); 
       });
     });
   });
   console.log('✅ Daily reminders sent!');
+  
 });
 
 bot.launch({
@@ -230,3 +220,4 @@ bot.launch({
 });
 
 console.log('🚀 LoveBoostBot is running...');
+console.log('Текущее серверное время:', new Date().toLocaleString());
