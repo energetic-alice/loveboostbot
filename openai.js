@@ -109,6 +109,9 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
         let idea = response.choices[0].message.content.trim();
 
+        // Удаление начальных дефисов и лишних пробелов
+        idea = idea.replace(/^[-–—]\s*/, '');
+
         // ✅ Удаление любых начальных и конечных кавычек (двойных и одинарных)
         idea = idea.replace(/^["'«»“”„”]+|["'«»“”„”]+$/g, '').trim();
 
