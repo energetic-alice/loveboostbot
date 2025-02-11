@@ -42,7 +42,6 @@ bot.action(/set_lang_(.+)/, ctx => {
   db.saveLanguage(ctx.from.id, lang);
 
   db.getLanguage(ctx.from.id, retrievedLang => {
-    //console.log(`Language after save: ${retrievedLang}`);
     ctx.reply(
       locales[retrievedLang].welcome,
       Markup.inlineKeyboard([
@@ -149,20 +148,18 @@ async function sendIdea(ctx, type = null) {
 // Обработка реакций
 
 bot.action(/^like_(romantic|spicy)$/, ctx => {
-  const ideaText = ctx.update.callback_query.message.text;
+  const ideaText = ctx.update.callback_query.message.text.split('\n').slice(1).join('\n').trim();
   saveUserIdea(ctx.from.id, new Date().getTime(), ideaText, 'like');
   ctx.reply('❤️ Рад, что понравилось!');
 });
 
 // Объединённая кнопка "Дислайк/Следующая"
 bot.action(/dislike_(.+)/, async ctx => {
-  console.log('Кнопка "Дислайк/Следующая" нажата'); // ✅ Проверка срабатывания
   const userId = ctx.from.id;
-  const ideaText = ctx.update.callback_query.message.text;
+  const ideaText = ctx.update.callback_query.message.text.split('\n').slice(1).join('\n').trim();
   const ideaType = ctx.match[1]; // romantic или spicy
 
   db.getTodayDislikeCount(userId, count => {
-    console.log(`Количество дизлайков сегодня: ${count}`); // ✅ Проверка лимита
     if (count < 3) {
       saveUserIdea(userId, new Date().getTime(), ideaText, 'dislike'); // ✅ Сохраняем дизлайк
       ctx.reply('😕 Попробуем что-то другое...');
@@ -183,7 +180,7 @@ bot.action(/dislike_(.+)/, async ctx => {
           Markup.inlineKeyboard([
             [
               Markup.button.callback('❤️', `like_${ideaType}`),
-              Markup.button.callback('❌', `dislike_or_next_${ideaType}`),
+              Markup.button.callback('❌', `dislike_${ideaType}`),
               Markup.button.callback('✔️', `done_${ideaType}`),
             ],
           ]),
@@ -209,7 +206,6 @@ cron.schedule('0 9 * * *', () => {
     });
   });
   console.log('✅ Daily reminders sent!');
-  
 });
 
 bot.launch({

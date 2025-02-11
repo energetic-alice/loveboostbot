@@ -9,20 +9,24 @@ const openai = new OpenAI({
 async function generatePersonalizedIdea(userId, type = 'romantic', language = 'en') {
   return new Promise(resolve => {
     db.getUserFeedback(userId, async feedback => {
-      const likes = feedback.filter(item => item.feedback === 'like').map(item => item.idea_id);
-      const dislikes = feedback.filter(item => item.feedback === 'dislike').map(item => item.idea_id);
+      const likes = feedback.filter(item => item.feedback === 'like').map(item => item.idea_text).slice(0, 10);
+      const dislikes = feedback.filter(item => item.feedback === 'dislike').map(item => item.idea_text).slice(0, 10);
 
       const exampleIdeas = type === 'romantic' ? romanticIdeas[language] : spicyIdeas[language];
       const examplesText = exampleIdeas.map(idea => `- ${idea.text}`).join('\n');
+
+      // Получаем последние 10 идей
+      const lastIdeas = feedback.slice(-10).map(item => item.idea_text);
+      const avoidIdeas = [...new Set([...lastIdeas, ...dislikes])];
 
       let prompt = `Here are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}\n\n`;
 
       prompt += `Now generate a NEW unique ${type === 'spicy' ? 'spicy (18+)' : 'romantic'} idea for a couple. `;
       if (likes.length > 0) {
-        prompt += `The user enjoyed ideas with IDs: ${likes.join(', ')}. `;
+        prompt += `The user enjoyed ideas like: ${likes.join(', ')}. `;
       }
-      if (dislikes.length > 0) {
-        prompt += `Avoid ideas similar to those with IDs: ${dislikes.join(', ')}. `;
+      if (avoidIdeas.length > 0) {
+        prompt += `Avoid ideas similar to: ${avoidIdeas.join(', ')}. `;
       }
 
       // 🎯 Чёткая инструкция:
@@ -39,7 +43,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       if (type === 'spicy') {
         prompt += `
-       
+
         Generate an **explicitly sexual 18+ idea** for couples.
         
         The idea must include clear elements of sexual activity, such as:
@@ -72,13 +76,12 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
         - "Cook a romantic dinner together." ❌ Not sexual
         - "Go for a long walk and hold hands." ❌ Not intimate enough
 
-
         **Write the idea as a clear, standalone suggestion without extra explanations.** 
-
         `;
       }
 
       prompt += language === 'ru' ? ` Ответь на русском языке.` : ` Respond in English.`;
+      console.log('Prompt for user ', userId, ':', prompt);
 
       try {
         const response = await openai.chat.completions.create({
