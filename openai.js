@@ -31,8 +31,7 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       - Focus on emotional connection and playful interaction.
       - Only provide the idea itself. Do NOT include any explanations, reasons, benefits, or motivational phrases. Just the idea, as a single complete sentence or short paragraph.
       - Do NOT include activities that require specific items that might not be readily available at home, such as board games, special costumes, candles, or unique props. Only suggest ideas that can be done with common household items or no items at all.
-      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.
-      - Avoid generating ideas similar to the following recent ideas:\n- ${avoidIdeasText}`;
+      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.`;
 
       if (type === 'spicy') {
         prompt += `
