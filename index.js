@@ -7,28 +7,42 @@ import cron from 'node-cron';
 import OpenAI from 'openai';
 import { generatePersonalizedIdea } from './openai.js';
 import { saveUserIdea } from './db.js';
+import i18next from 'i18next';
+import Backend from 'i18next-fs-backend';
+import middleware from 'i18next-http-middleware';
+
+// Инициализация i18next
+i18next
+  .use(Backend)
+  .use(middleware.LanguageDetector)
+  .init({
+    fallbackLng: 'en',
+    backend: {
+      loadPath: './locales/{{lng}}.json',
+    },
+    detection: {
+      order: ['querystring', 'cookie'],
+      caches: ['cookie'],
+    },
+  });
 
 // Используем переменные окружения
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-// Загрузка переводов
-const locales = {
-  en: JSON.parse(fs.readFileSync('./locales/en.json')),
-  ru: JSON.parse(fs.readFileSync('./locales/ru.json')),
-};
-
 // Функция для получения текста на выбранном языке
 function t(userId, key, callback) {
   db.getLanguage(userId, lang => {
-    callback(locales[lang][key] || key);
+    i18next.changeLanguage(lang, () => {
+      callback(i18next.t(key));
+    });
   });
 }
 
 // Старт
 bot.start(ctx => {
   ctx.reply(
-    locales.en.choose_language,
+    i18next.t('choose_language'),
     Markup.inlineKeyboard([
       [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
       [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
@@ -42,22 +56,24 @@ bot.action(/set_lang_(.+)/, ctx => {
   db.saveLanguage(ctx.from.id, lang);
 
   db.getLanguage(ctx.from.id, retrievedLang => {
-    ctx.reply(
-      locales[retrievedLang].welcome,
-      Markup.inlineKeyboard([
-        [Markup.button.callback(locales[retrievedLang].menu.girl, 'set_profile_girl')],
-        [Markup.button.callback(locales[retrievedLang].menu.boy, 'set_profile_boy')],
-        [Markup.button.callback(locales[retrievedLang].menu.couple, 'set_profile_couple')],
-        [Markup.button.callback(locales[retrievedLang].menu.change_language, 'change_language')],
-      ]),
-    );
+    i18next.changeLanguage(retrievedLang, () => {
+      ctx.reply(
+        i18next.t('welcome'),
+        Markup.inlineKeyboard([
+          [Markup.button.callback(i18next.t('menu.girl'), 'set_profile_girl')],
+          [Markup.button.callback(i18next.t('menu.boy'), 'set_profile_boy')],
+          [Markup.button.callback(i18next.t('menu.couple'), 'set_profile_couple')],
+          [Markup.button.callback(i18next.t('menu.change_language'), 'change_language')],
+        ]),
+      );
+    });
   });
 });
 
 // Смена языка
 bot.action('change_language', ctx => {
   ctx.reply(
-    locales.en.choose_language,
+    i18next.t('choose_language'),
     Markup.inlineKeyboard([
       [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
       [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
@@ -65,7 +81,7 @@ bot.action('change_language', ctx => {
   );
 });
 
-//Установка профиля
+// Установка профиля
 bot.action(/set_profile_(.+)/, async ctx => {
   const profile = ctx.match[1];
   const userId = ctx.from.id;
@@ -89,7 +105,7 @@ bot.command('idea', ctx => {
 
 async function sendIdea(ctx, type = null) {
   const userId = ctx.from.id;
-  const waitingMessage = await ctx.reply('⏳ Генерируем новую идею…');
+  const waitingMessage = await ctx.reply(i18next.t('generating_idea'));
 
   db.getLanguage(userId, async lang => {
     try {
@@ -99,7 +115,7 @@ async function sendIdea(ctx, type = null) {
         await ctx.deleteMessage(waitingMessage.message_id);
 
         await ctx.reply(
-          `${type === 'romantic' ? '💖 Романтическая идея' : '🔥 Идея 18+'}:\n${idea}`,
+          `${i18next.t(type === 'romantic' ? 'romantic_idea' : 'spicy_idea')}:\n${idea}`,
           Markup.inlineKeyboard([
             [
               Markup.button.callback('❤️', `like_${type}`),
@@ -116,7 +132,7 @@ async function sendIdea(ctx, type = null) {
         await ctx.deleteMessage(waitingMessage.message_id);
 
         await ctx.reply(
-          `💖 ${lang === 'ru' ? 'Романтическая идея' : 'Romantic Idea'}:\n${romanticIdea}`,
+          `💖 ${i18next.t('romantic_idea')}:\n${romanticIdea}`,
           Markup.inlineKeyboard([
             [
               Markup.button.callback('❤️', `like_romantic`),
@@ -127,7 +143,7 @@ async function sendIdea(ctx, type = null) {
         );
 
         await ctx.reply(
-          `🔥 ${lang === 'ru' ? 'Идея 18+' : 'Spicy Idea'}:\n${spicyIdea}`,
+          `🔥 ${i18next.t('spicy_idea')}:\n${spicyIdea}`,
           Markup.inlineKeyboard([
             [
               Markup.button.callback('❤️', `like_spicy`),
@@ -139,7 +155,7 @@ async function sendIdea(ctx, type = null) {
       }
     } catch (error) {
       console.error('Ошибка при отправке идей:', error);
-      await ctx.reply(lang === 'ru' ? 'Произошла ошибка. Попробуйте снова.' : 'An error occurred. Please try again.');
+      await ctx.reply(i18next.t('error_occurred'));
       await ctx.deleteMessage(waitingMessage.message_id);
     }
   });
@@ -150,7 +166,7 @@ async function sendIdea(ctx, type = null) {
 bot.action(/^like_(romantic|spicy)$/, ctx => {
   const ideaText = ctx.update.callback_query.message.text.split('\n').slice(1).join('\n').trim();
   saveUserIdea(ctx.from.id, new Date().getTime(), ideaText, 'like');
-  ctx.reply('❤️ Рад, что понравилось!');
+  ctx.reply(i18next.t('like_response'));
 });
 
 // Объединённая кнопка "Дислайк/Следующая"
@@ -161,22 +177,14 @@ bot.action(/dislike_(.+)/, async ctx => {
 
   db.getTodayDislikeCount(userId, count => {
     if (count < 3) {
-      saveUserIdea(userId, new Date().getTime(), ideaText, 'dislike'); // ✅ Сохраняем дизлайк
-      ctx.reply('😕 Попробуем что-то другое...');
+      saveUserIdea(userId, new Date().getTime(), ideaText, 'dislike', ideaType); // ✅ Сохраняем дизлайк
+      ctx.reply(i18next.t('dislike_response'));
 
       // ✅ Отправляем новую идею ТОЛЬКО того же типа
       db.getLanguage(userId, async lang => {
         const newIdea = await generatePersonalizedIdea(userId, ideaType, lang);
         ctx.reply(
-          `${ideaType === 'romantic' ? '💖' : '🔥'} ${
-            lang === 'ru'
-              ? ideaType === 'romantic'
-                ? 'Романтическая идея'
-                : 'Идея 18+'
-              : ideaType === 'romantic'
-                ? 'Romantic Idea'
-                : 'Spicy Idea'
-          }:\n${newIdea}`,
+          `${ideaType === 'romantic' ? '💖' : '🔥'} ${i18next.t(ideaType === 'romantic' ? 'romantic_idea' : 'spicy_idea')}:\n${newIdea}`,
           Markup.inlineKeyboard([
             [
               Markup.button.callback('❤️', `like_${ideaType}`),
@@ -187,13 +195,13 @@ bot.action(/dislike_(.+)/, async ctx => {
         );
       });
     } else {
-      t(userId, 'dislike_limit_reached', text => ctx.reply(text)); // ✅ Лимит достигнут
+      ctx.reply(i18next.t('dislike_limit_reached')); // ✅ Лимит достигнут
     }
   });
 });
 
 bot.action(/done_(.+)/, ctx => {
-  ctx.reply('✅ Здорово, что вы это сделали!');
+  ctx.reply(i18next.t('done_response'));
 });
 
 // Ежедневная рассылка идей в 9:00 утра по времени сервера
@@ -201,11 +209,11 @@ cron.schedule('0 9 * * *', () => {
   db.getAllUsers(users => {
     users.forEach(user => {
       t(user.id, 'daily_reminder', text => {
-        sendIdea(user); 
+        sendIdea(user);
       });
     });
   });
-  console.log('✅ Daily reminders sent!');
+  console.log(i18next.t('daily_reminders_sent'));
 });
 
 bot.launch({
@@ -215,5 +223,5 @@ bot.launch({
   },
 });
 
-console.log('🚀 LoveBoostBot is running...');
-console.log('Текущее серверное время:', new Date().toLocaleString());
+console.log(i18next.t('bot_running'));
+console.log(`${i18next.t('current_server_time')} ${new Date().toLocaleString()}`);

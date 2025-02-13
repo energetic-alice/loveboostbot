@@ -1,17 +1,28 @@
 {
-    "welcome": "Welcome to LoveBoostBot ❤️ Who are you?",
-    "choose_language": "Choose your language:",
-    "profile_set": "Great! I'll send you daily love-boosting ideas.",
-    "like": "Glad you liked it! ❤️",
-    "dislike": "Here’s another idea:",
-    "done": "Awesome! Love is in the details. 💕",
-    "daily_reminder": "Here's your daily love-boosting idea:",
-    "menu": {
-      "girl": "👩 I'm a girl",
-      "boy": "👨 I'm a boy",
-      "couple": "💑 We're a couple",
-      "change_language": "🌍 Change language"
-    },
-    "next": "Here’s another idea! 🔄",
-        "dislike_limit_reached": "Sorry, but you reached dislike limit! Try again tomorrow!"
-  }
+  "welcome": "Welcome to LoveBoostBot ❤️ Who are you?",
+  "choose_language": "Choose your language:",
+  "profile_set": "Great! I will send you ideas to strengthen your relationship.",
+  "like": "Glad you liked it! ❤️",
+  "dislike": "Here's another idea:",
+  "done": "Great! Love is in the details. 💕",
+  "daily_reminder": "Here's your daily idea to strengthen your love:",
+  "menu": {
+    "girl": "👩 I'm a girl",
+    "boy": "👨 I'm a boy",
+    "couple": "💑 We're a couple",
+    "change_language": "🌍 Change language"
+  },
+  "next": "Here's another idea! 🔄",
+  "dislike_limit_reached": "You have reached the limit of 3 dislikes for today. Try again tomorrow!",
+  "generation_error_en": "Failed to generate an idea. Try again later.",
+  "generating_idea": "⏳ Generating a new idea...",
+  "romantic_idea": "Romantic Idea",
+  "spicy_idea": "Spicy Idea",
+  "error_occurred": "An error occurred. Please try again.",
+  "like_response": "Glad you liked it! ❤️",
+  "dislike_response": "Here's another idea:",
+  "done_response": "Great! Love is in the details. 💕",
+  "daily_reminders_sent": "✅ Daily reminders sent!",
+  "bot_running": "🚀 LoveBoostBot is running...",
+  "current_server_time": "Current server time:"
+}
