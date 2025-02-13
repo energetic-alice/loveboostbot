@@ -37,7 +37,8 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       - Focus on emotional connection and playful interaction.
       - Only provide the idea itself. Do NOT include any explanations, reasons, benefits, or motivational phrases. Just the idea, as a single complete sentence or short paragraph.
       - Do NOT include activities that require specific items that might not be readily available at home, such as board games, special costumes, candles, or unique props. Only suggest ideas that can be done with common household items or no items at all.
-      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.`;
+      - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.
+      - Remove unnecessary punctuation and symbols.`;
 
       if (type === 'spicy') {
         prompt += `
@@ -88,7 +89,13 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       prompt += `\n\nHere are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}`;
 
-      prompt += language === 'ru' ? `\n\nОтветь на русском языке.` : `\n\nRespond in English.`;
+      prompt +=
+        language === 'ru'
+          ? `\n\nОтветь на русском языке.
+      Ответ должен быть на правильном русском языке, без странных конструкций, лишних символов и машинного перевода. Используй естественные фразы, которые звучат живо и понятно.
+      Избегай машинного перевода. Убедись, что текст звучит естественно и правильно на русском языке. Убирай лишние знаки препинания и символы. Пиши как человек.
+      `
+          : `\n\nRespond in English.`;
 
       console.log('Prompt for user ', userId, ':', prompt);
 
