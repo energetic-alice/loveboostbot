@@ -45,6 +45,16 @@ function t(userId, key, callback) {
   });
 }
 
+bot.telegram.setMyCommands([{ command: 'feedback', description: i18next.t('menu.feedback') }]);
+
+bot.command('feedback', ctx => {
+  t(ctx.from.id, 'feedback_message', text => {
+    ctx.reply(text);
+  });
+});
+
+bot.launch();
+
 // Старт
 bot.start(ctx => {
   ctx.reply(

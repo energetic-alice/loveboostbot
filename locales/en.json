@@ -10,7 +10,8 @@
     "girl": "👩 I'm a girl",
     "boy": "👨 I'm a boy",
     "couple": "💑 We're a couple",
-    "change_language": "🌍 Change language"
+    "change_language": "🌍 Change language",
+    "feedback": "Contact developer"
   },
   "next": "Here's another idea! 🔄",
   "dislike_limit_reached": "You have reached the limit of 3 dislikes for today. Try again tomorrow!",
@@ -24,5 +25,7 @@
   "done_response": "Great! Love is in the details. 💕",
   "daily_reminders_sent": "✅ Daily reminders sent!",
   "bot_running": "🚀 LoveBoostBot is running...",
-  "current_server_time": "Current server time:"
+  "current_server_time": "Current server time:",
+  "feedback_message": "💡 Any ideas or found a bug? Message me:\n\n📩 Telegram: \"@alicewhocodes\"\nI would love to hear your feedback or fix any issues! 😊"
+
 }
