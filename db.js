@@ -87,7 +87,6 @@ function saveUserIdea(userId, ideaId, ideaText, feedback, type) {
     [userId, ideaId, ideaText, feedback, type],
     err => {
       if (err) console.error('❌ Ошибка при сохранении идеи:', err);
-      else console.log('✅ Идея успешно сохранена!');
     },
   );
 }
@@ -99,12 +98,11 @@ function wasIdeaShown(userId, ideaId, callback) {
   });
 }
 
-// Получаем обратную связь пользователя
-function getUserFeedback(userId, callback) {
-  db.all(`SELECT idea_text, feedback, type FROM user_ideas WHERE user_id = ?`, [userId], (err, rows) => {
+// Получаем обратную связь пользователя по конкретному типу идеи
+function getUserFeedback(userId, type, callback) {
+  db.all(`SELECT idea_text, feedback FROM user_ideas WHERE user_id = ? AND type = ?`, [userId, type], (err, rows) => {
     if (err) {
-      console.error('Ошибка при получении обратной связи:', err);
-      callback([]);
+      console.error('❌ Ошибка при проверке данных в БД:', err);
     } else {
       callback(rows);
     }

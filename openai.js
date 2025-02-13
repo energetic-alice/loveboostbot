@@ -8,31 +8,24 @@ const openai = new OpenAI({
 
 async function generatePersonalizedIdea(userId, type = 'romantic', language = 'en') {
   return new Promise(resolve => {
-    db.getUserFeedback(userId, async feedback => {
-      const likes = feedback
-        .filter(item => item.feedback === 'like' && item.type === type)
-        .map(item => item.idea_text)
-        .slice(0, 10);
+    db.getUserFeedback(userId, type, async feedback => {
+      console.log('📌 Данные из БД:', feedback); // Проверяем, что БД вернула данные
+
+      const likes = feedback.filter(item => item.feedback.trim().toLowerCase() === 'like').map(item => item.idea_text);
+
       const dislikes = feedback
-        .filter(item => item.feedback === 'dislike' && item.type === type)
-        .map(item => item.idea_text)
-        .slice(0, 10);
+        .filter(item => item.feedback.trim().toLowerCase() === 'dislike')
+        .map(item => item.idea_text);
+
+      const lastIdeasTexts = feedback
+        .filter(item => item.feedback.trim().toLowerCase() === 'shown')
+        .slice(-10)
+        .map(item => item.idea_text);
+
+      const avoidIdeasText = [...new Set([...lastIdeasTexts, ...dislikes])].join('\n- ');
 
       const exampleIdeas = type === 'romantic' ? romanticIdeas[language] : spicyIdeas[language];
       const examplesText = exampleIdeas.map(idea => `- ${idea.text}`).join('\n');
-
-      // Получаем последние 10 идей
-      const lastIdeas = feedback
-        .filter(item => item.type === type)
-        .slice(-10)
-        .map(item => item.idea_text);
-      const lastIdeasTexts = lastIdeas.map(idea => idea.text);
-      const avoidIdeasText = [...new Set([...lastIdeasTexts, ...dislikes])].join('\n- ');
-
-      console.log(likes);
-      console.log(dislikes);
-
-      console.log(lastIdeasTexts);
 
       let prompt = `Generate a NEW unique ${type === 'spicy' ? 'spicy (18+)' : 'romantic'} idea for a couple. `;
 
@@ -84,11 +77,17 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       }
 
       if (likes.length > 0) {
-        prompt += `\n\nThe user enjoyed ideas like:\n- ${likes.join('\n- ')}. `;
+        prompt += `\n\nThe user liked these ideas, generate something similar:\n- ${likes.join('\n- ')}. `;
       }
+
+      if (dislikes.length > 0) {
+        prompt += `\n\nThe user disliked these ideas, avoid anything similar:\n- ${dislikes.join('\n- ')}. `;
+      }
+
       if (avoidIdeasText.length > 0) {
-        prompt += `\n\nAvoid ideas similar to:\n- ${avoidIdeasText}. `;
+        prompt += `\n\nThese ideas have already been shown before. Avoid generating duplicates:\n- ${avoidIdeasText}. `;
       }
+
       prompt += `\n\nHere are some example ${type === 'spicy' ? '18+ spicy' : 'romantic'} ideas for couples:\n${examplesText}`;
 
       prompt += language === 'ru' ? `\n\nОтветь на русском языке.` : `\n\nRespond in English.`;

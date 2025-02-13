@@ -211,9 +211,7 @@ bot.action(/done_(.+)/, ctx => {
 });
 
 // Ежедневная рассылка идей в 9:00 утра по времени сервера
-console.log('⏳ Бот запущен. Время сервера:', new Date().toLocaleString());
-
-cron.schedule('*/1 * * * *', () => {
+cron.schedule('0 9 * * *', async () => {
   console.log('⏰ Рассылка запущена! Время:', new Date().toLocaleString());
 
   db.getAllUsers(users => {
