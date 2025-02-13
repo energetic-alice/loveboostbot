@@ -35,6 +35,35 @@ i18next
     () => {
       console.log('🌍 Localization loaded');
       setBotCommands(); // ✅ Устанавливаем команды после загрузки локализации
+
+      // 💡 Теперь вызываем bot.start() только после загрузки i18next
+      bot.start(ctx => {
+        console.log('✅ /start вызван пользователем', ctx.from.id);
+        ctx.reply(
+          i18next.t('choose_language'),
+          Markup.inlineKeyboard([
+            [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
+            [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
+          ]),
+        );
+      });
+
+      if (process.env.TEST_BOT) {
+        // Тестовый бот работает через long polling
+        bot.launch();
+        console.log('🚀 Test bot is running in long polling mode...');
+      } else {
+        bot.launch({
+          webhook: {
+            domain: process.env.WEBHOOK_URL,
+            port: process.env.PORT || 3000,
+          },
+        });
+        console.log('🚀 Production bot is running via Webhook...');
+      }
+
+      console.log(i18next.t('bot_running'));
+      console.log(`${i18next.t('current_server_time')} ${new Date().toLocaleString()}`);
     },
   );
 
@@ -63,19 +92,6 @@ bot.command('feedback', ctx => {
   t(ctx.from.id, 'feedback_message', text => {
     ctx.reply(text);
   });
-});
-
-bot.launch();
-
-// Старт
-bot.start(ctx => {
-  ctx.reply(
-    i18next.t('choose_language'),
-    Markup.inlineKeyboard([
-      [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
-      [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
-    ]),
-  );
 });
 
 // Установка языка
@@ -257,20 +273,3 @@ cron.schedule('0 9 * * *', async () => {
 
   console.log(i18next.t('daily_reminders_sent'));
 });
-
-if (process.env.TEST_BOT) {
-  // Тестовый бот работает через long polling
-  bot.launch();
-  console.log('🚀 Test bot is running in long polling mode...');
-} else {
-  bot.launch({
-    webhook: {
-      domain: process.env.WEBHOOK_URL,
-      port: process.env.PORT || 3000,
-    },
-  });
-  console.log('🚀 Production bot is running via Webhook...');
-}
-
-console.log(i18next.t('bot_running'));
-console.log(`${i18next.t('current_server_time')} ${new Date().toLocaleString()}`);
