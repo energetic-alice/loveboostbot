@@ -9,8 +9,6 @@ const openai = new OpenAI({
 async function generatePersonalizedIdea(userId, type = 'romantic', language = 'en') {
   return new Promise(resolve => {
     db.getUserFeedback(userId, type, async feedback => {
-      console.log('📌 Данные из БД:', feedback); // Проверяем, что БД вернула данные
-
       const likes = feedback.filter(item => item.feedback.trim().toLowerCase() === 'like').map(item => item.idea_text);
 
       const dislikes = feedback

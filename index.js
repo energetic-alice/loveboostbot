@@ -1,8 +1,6 @@
 import dotenv from 'dotenv';
 import { Telegraf, Markup } from 'telegraf';
 import * as db from './db.js';
-import * as ideas from './ideas.js';
-import fs from 'fs';
 import cron from 'node-cron';
 import OpenAI from 'openai';
 import { generatePersonalizedIdea } from './openai.js';
@@ -11,61 +9,26 @@ import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import middleware from 'i18next-http-middleware';
 
+// Сначала определяем, какой .env файл использовать
 const ENV_FILE = process.env.TEST_BOT ? '.env.test' : '.env';
 dotenv.config({ path: ENV_FILE });
 
-console.log('Loaded ENV:', ENV_FILE);
-console.log('Токен бота:', process.env.BOT_TOKEN);
+console.log(process.env.BOT_TOKEN);
 
 // Инициализация i18next
 i18next
   .use(Backend)
   .use(middleware.LanguageDetector)
-  .init(
-    {
-      fallbackLng: 'en',
-      backend: {
-        loadPath: './locales/{{lng}}.json',
-      },
-      detection: {
-        order: ['querystring', 'cookie'],
-        caches: ['cookie'],
-      },
+  .init({
+    fallbackLng: 'en',
+    backend: {
+      loadPath: './locales/{{lng}}.json',
     },
-    () => {
-      console.log('🌍 Localization loaded');
-      setBotCommands(); // ✅ Устанавливаем команды после загрузки локализации
-
-      // 💡 Теперь вызываем bot.start() только после загрузки i18next
-      bot.start(ctx => {
-        console.log('✅ /start вызван пользователем', ctx.from.id);
-        ctx.reply(
-          i18next.t('choose_language'),
-          Markup.inlineKeyboard([
-            [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
-            [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
-          ]),
-        );
-      });
-
-      if (process.env.TEST_BOT) {
-        // Тестовый бот работает через long polling
-        bot.launch();
-        console.log('🚀 Test bot is running in long polling mode...');
-      } else {
-        bot.launch({
-          webhook: {
-            domain: process.env.WEBHOOK_URL,
-            port: process.env.PORT || 3000,
-          },
-        });
-        console.log('🚀 Production bot is running via Webhook...');
-      }
-
-      console.log(i18next.t('bot_running'));
-      console.log(`${i18next.t('current_server_time')} ${new Date().toLocaleString()}`);
+    detection: {
+      order: ['querystring', 'cookie'],
+      caches: ['cookie'],
     },
-  );
+  });
 
 // Используем переменные окружения
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -80,18 +43,22 @@ function t(userId, key, callback) {
   });
 }
 
-// Функция для установки локализованных команд после загрузки i18next
-function setBotCommands() {
-  bot.telegram.setMyCommands([
-    // { command: 'idea', description: i18next.t('menu.idea') },
-    { command: 'feedback', description: i18next.t('menu.feedback') },
-  ]);
+// Устанавливаем команды бота с локализацией
+async function setBotCommands() {
+  bot.telegram.setMyCommands([{ command: 'feedback', description: '💌' }]);
 }
 
-bot.command('feedback', ctx => {
-  t(ctx.from.id, 'feedback_message', text => {
-    ctx.reply(text);
-  });
+setBotCommands();
+
+// Старт
+bot.start(ctx => {
+  ctx.reply(
+    i18next.t('choose_language'),
+    Markup.inlineKeyboard([
+      [Markup.button.callback('🇬🇧 English', 'set_lang_en')],
+      [Markup.button.callback('🇷🇺 Русский', 'set_lang_ru')],
+    ]),
+  );
 });
 
 // Установка языка
@@ -144,6 +111,12 @@ bot.action(/set_profile_(.+)/, async ctx => {
 bot.command('idea', ctx => {
   db.getLanguage(ctx.from.id, lang => {
     sendIdea(ctx, lang); // Вынесем логику в отдельную функцию
+  });
+});
+
+bot.command('feedback', ctx => {
+  t(ctx.from.id, 'feedback_message', text => {
+    ctx.reply(i18next.t('feedback_message'));
   });
 });
 
@@ -249,16 +222,10 @@ bot.action(/done_(.+)/, ctx => {
 });
 
 // Ежедневная рассылка идей в 9:00 утра по времени сервера
-cron.schedule('0 9 * * *', async () => {
-  console.log('⏰ Рассылка запущена! Время:', new Date().toLocaleString());
-
+cron.schedule('0 9 * * *', () => {
   db.getAllUsers(users => {
-    console.log(`👥 Найдено пользователей: ${users.length}`);
-
     users.forEach(user => {
       t(user.id, 'daily_reminder', text => {
-        console.log(`📩 Отправка идеи пользователю ${user.id}`);
-
         // Создаём искусственный ctx, чтобы sendIdea работала корректно
         const fakeCtx = {
           from: { id: user.id },
@@ -270,6 +237,18 @@ cron.schedule('0 9 * * *', async () => {
       });
     });
   });
-
-  console.log(i18next.t('daily_reminders_sent'));
 });
+
+if (process.env.TEST_BOT) {
+  // Тестовый бот работает через long polling
+  bot.launch();
+  console.log('🚀 Test bot is running in long polling mode...');
+} else {
+  bot.launch({
+    webhook: {
+      domain: process.env.WEBHOOK_URL,
+      port: process.env.PORT || 3000,
+    },
+  });
+  console.log('🚀 Production bot is running via Webhook...');
+}
