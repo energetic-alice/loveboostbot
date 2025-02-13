@@ -171,7 +171,7 @@ async function sendIdea(ctx, type = null) {
 
 bot.action(/^like_(romantic|spicy)$/, ctx => {
   const ideaText = ctx.update.callback_query.message.text.split('\n').slice(1).join('\n').trim();
-  saveUserIdea(ctx.from.id, new Date().getTime(), ideaText, 'like');
+  saveUserIdea(ctx.from.id, new Date().getTime(), ideaText, 'like', ctx.match[1]);
   ctx.reply(i18next.t('like_response'));
 });
 
@@ -211,14 +211,30 @@ bot.action(/done_(.+)/, ctx => {
 });
 
 // Ежедневная рассылка идей в 9:00 утра по времени сервера
-cron.schedule('0 9 * * *', () => {
+console.log('⏳ Бот запущен. Время сервера:', new Date().toLocaleString());
+
+cron.schedule('*/1 * * * *', () => {
+  console.log('⏰ Рассылка запущена! Время:', new Date().toLocaleString());
+
   db.getAllUsers(users => {
+    console.log(`👥 Найдено пользователей: ${users.length}`);
+
     users.forEach(user => {
       t(user.id, 'daily_reminder', text => {
-        sendIdea(user);
+        console.log(`📩 Отправка идеи пользователю ${user.id}`);
+
+        // Создаём искусственный ctx, чтобы sendIdea работала корректно
+        const fakeCtx = {
+          from: { id: user.id },
+          reply: (message, extra) => bot.telegram.sendMessage(user.id, message, extra),
+          deleteMessage: messageId => bot.telegram.deleteMessage(user.id, messageId),
+        };
+
+        sendIdea(fakeCtx);
       });
     });
   });
+
   console.log(i18next.t('daily_reminders_sent'));
 });
 

@@ -23,6 +23,10 @@ db.serialize(() => {
       PRIMARY KEY (user_id, idea_id)
     )
   `);
+
+  db.run(`CREATE INDEX IF NOT EXISTS idx_user_id ON user_ideas(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_feedback ON user_ideas(feedback)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_timestamp ON user_ideas(timestamp DESC)`);
 });
 
 // Сохраняем профиль пользователя
@@ -78,10 +82,12 @@ function getAllUsers(callback) {
 // Сохраняем показанную идею и обратную связь
 function saveUserIdea(userId, ideaId, ideaText, feedback, type) {
   db.run(
-    `INSERT OR REPLACE INTO user_ideas (user_id, idea_id, idea_text, feedback, type) VALUES (?, ?, ?, ?, ?)`,
+    `INSERT INTO user_ideas (user_id, idea_id, idea_text, feedback, type, timestamp) 
+     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
     [userId, ideaId, ideaText, feedback, type],
     err => {
-      if (err) console.error('Ошибка при сохранении идеи и обратной связи:', err);
+      if (err) console.error('❌ Ошибка при сохранении идеи:', err);
+      else console.log('✅ Идея успешно сохранена!');
     },
   );
 }
