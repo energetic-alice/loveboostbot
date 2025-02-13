@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import { Telegraf, Markup } from 'telegraf';
 import * as db from './db.js';
 import * as ideas from './ideas.js';
@@ -10,6 +10,12 @@ import { saveUserIdea } from './db.js';
 import i18next from 'i18next';
 import Backend from 'i18next-fs-backend';
 import middleware from 'i18next-http-middleware';
+
+const ENV_FILE = process.env.TEST_BOT ? '.env.test' : '.env';
+dotenv.config({ path: ENV_FILE });
+
+console.log('Loaded ENV:', ENV_FILE);
+console.log('Токен бота:', process.env.BOT_TOKEN);
 
 // Инициализация i18next
 i18next
@@ -216,12 +222,19 @@ cron.schedule('0 9 * * *', () => {
   console.log(i18next.t('daily_reminders_sent'));
 });
 
-bot.launch({
-  webhook: {
-    domain: 'https://loveboostbot.onrender.com',
-    port: process.env.PORT || 3000,
-  },
-});
+if (process.env.TEST_BOT) {
+  // Тестовый бот работает через long polling
+  bot.launch();
+  console.log('🚀 Test bot is running in long polling mode...');
+} else {
+  bot.launch({
+    webhook: {
+      domain: process.env.WEBHOOK_URL,
+      port: process.env.PORT || 3000,
+    },
+  });
+  console.log('🚀 Production bot is running via Webhook...');
+}
 
 console.log(i18next.t('bot_running'));
 console.log(`${i18next.t('current_server_time')} ${new Date().toLocaleString()}`);

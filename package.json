@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-  "scripts": {
-    "start": "node index.js",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+"scripts": {
+  "start": "node index.js",
+  "start:test": "TEST_BOT=true node index.js",
+  "lint": "eslint .",
+  "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",

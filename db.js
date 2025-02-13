@@ -1,7 +1,8 @@
 import sqlite3 from 'sqlite3';
+import 'dotenv/config';
 
 const { Database } = sqlite3.verbose();
-const db = new Database('database.db');
+const db = new Database(process.env.DATABASE_URL);
 
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (

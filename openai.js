@@ -47,11 +47,36 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
         Generate an **explicitly sexual 18+ idea** for couples.
         
-       
+        The idea must include clear elements of sexual activity, such as:
+        - Foreplay techniques (e.g., sensual massage, teasing, strip games)
+        - Dominance/submission dynamics (light BDSM, restraints, blindfolds)
+        - Role-playing scenarios (teacher/student, boss/assistant, stranger fantasy, etc.)
+        - Oral activities, erotic dares, body exploration, or intense physical intimacy.
+        - The idea MUST involve **explicit sexual activity** or **intimate physical touch**.
+
+        ❗ **Important instructions:**
+        - The idea should be provocative and arousing, leaving no ambiguity that it’s about sex.
+        - The idea should be a single, clear, and concise activity, not combining multiple actions.
+        - Avoid any non-sexual activities like movies, playlists, picnics, or general bonding exercises.
+        - No vague descriptions like “build emotional connection” — focus ONLY on sexual interaction.
+        - Ensure the idea is logically clear, with no awkward phrasing or incomplete thoughts.
+        - Focus on acts related to **foreplay, intercourse, role-play, oral sex, dominance/submission, light BDSM, or erotic games**.
+        - Avoid any non-sexual activities like cooking, watching movies, or generic bonding exercises.
+
+        Valid 18+ ideas:
+        - "Tie your partner’s hands with a soft scarf and take turns teasing each other without using your hands."
+        - "Try a ‘hot and cold’ game where you stimulate each other with ice cubes and warm breath."
+        - "Blindfold your partner and give them gentle commands, exploring their body with different textures like silk or feathers."
+        - "Role-play a forbidden romance scenario—like strangers meeting for a secret rendezvous."
+        - "Use massage oil for an all-over body massage, slowly increasing intensity to build anticipation."
+        - "Play a strip poker game where the loser must perform a chosen sexual favor."
+        - "Try sensory deprivation with a blindfold and explore each other's bodies slowly with ice cubes or feathers."
+        - "Role-play as strangers meeting for the first time, seducing each other from scratch."
 
         Invalid ideas:
         - "Cook a romantic dinner together." ❌ Not sexual
         - "Go for a long walk and hold hands." ❌ Not intimate enough
+
         **Write the idea as a clear, standalone suggestion without extra explanations.** 
         `;
       }
