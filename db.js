@@ -29,6 +29,12 @@ db.serialize(() => {
   db.run(`CREATE INDEX IF NOT EXISTS idx_timestamp ON user_ideas(timestamp DESC)`);
 });
 
+// Таблица для временной блокировки рассылки
+db.run(`CREATE TABLE IF NOT EXISTS snoozed_users (
+  user_id INTEGER PRIMARY KEY,
+  snooze_until DATETIME
+)`);
+
 // Сохраняем профиль пользователя
 function saveProfile(userId, profile) {
   db.run(
@@ -128,6 +134,47 @@ function getTodayDislikeCount(userId, callback) {
   );
 }
 
+// Функция: Отложить на 7 дней
+function snoozeUserForWeek(userId) {
+  const snoozeUntil = new Date();
+  snoozeUntil.setDate(snoozeUntil.getDate() + 7);
+
+  db.run(
+    `INSERT INTO snoozed_users (user_id, snooze_until) VALUES (?, ?)
+     ON CONFLICT(user_id) DO UPDATE SET snooze_until = ?`,
+    [userId, snoozeUntil.toISOString(), snoozeUntil.toISOString()],
+  );
+}
+
+// Функция: Проверить, отложил ли пользователь рассылку
+function getSnoozeStatus(userId, callback) {
+  db.get(`SELECT snooze_until FROM snoozed_users WHERE user_id = ?`, [userId], (err, row) => {
+    if (err) {
+      console.error('Ошибка при проверке статуса snooze:', err);
+      callback(false);
+      return;
+    }
+
+    if (!row || new Date(row.snooze_until) < new Date()) {
+      // Если даты нет или уже прошла – значит, можно снова присылать
+      db.run(`DELETE FROM snoozed_users WHERE user_id = ?`, [userId]); // Удаляем запись
+      callback(false);
+    } else {
+      callback(true); // Пользователь всё ещё в "заморозке"
+    }
+  });
+}
+
+function unsnoozeUser(userId) {
+  db.run(`DELETE FROM snoozed_users WHERE user_id = ?`, [userId], err => {
+    if (err) {
+      console.error('Ошибка при разморозке пользователя:', err);
+    } else {
+      console.log(`✅ Пользователь ${userId} разморожен и снова получает идеи`);
+    }
+  });
+}
+
 export {
   saveProfile,
   saveLanguage,
@@ -137,4 +184,7 @@ export {
   wasIdeaShown,
   getUserFeedback,
   getTodayDislikeCount,
+  snoozeUserForWeek,
+  getSnoozeStatus,
+  unsnoozeUser,
 };

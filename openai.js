@@ -38,7 +38,16 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
       - Only provide the idea itself. Do NOT include any explanations, reasons, benefits, or motivational phrases. Just the idea, as a single complete sentence or short paragraph.
       - Do NOT include activities that require specific items that might not be readily available at home, such as board games, special costumes, candles, or unique props. Only suggest ideas that can be done with common household items or no items at all.
       - The idea must be logically complete, with clear, coherent structure and natural flow. Avoid confusing or contradictory phrasing.
-      - Remove unnecessary punctuation and symbols.`;
+      - Remove unnecessary punctuation and symbols.
+      
+      📝 **Rules for the idea:**
+    - Must be **a single, complete, logical idea**.
+    - No awkward wording or redundant phrases.
+    - Keep the **tone natural, playful, and intimate**.
+    - The idea must be clear and self-explanatory without additional explanations.
+    - **In Russian, use smooth, natural phrasing**—avoid direct machine translation.
+    - Avoid wordy, clunky, or unnatural sentences.  
+    - Ensure proper **word agreement and structure**.`;
 
       if (type === 'spicy') {
         prompt += `
@@ -91,13 +100,19 @@ async function generatePersonalizedIdea(userId, type = 'romantic', language = 'e
 
       prompt +=
         language === 'ru'
-          ? `\n\nОтветь на русском языке.
+          ? `\n\nОтветь на русском языке и пиши как человек.
+          
+            🌐 **Localization rules (for Russian translation):**
+            - Use **human-like**, fluent, and idiomatic Russian.
+            - No unnatural constructions or repetitive words.
+            - Ensure **correct grammar, syntax, and natural flow**.
+            - Avoid excessive details, keep it **short and clear**.
 
-            Важно:
-            - Используй естественный русский язык, избегая машинных конструкций.
-            - Убедись, что фраза согласована и звучит плавно.
-            - Не используй неестественные слова, например, "партнершины руки".
-            - Приведи текст к нормальному разговорному стилю, который бы использовали люди.`
+            ❌ **Bad Example (machine-like):**  
+            _"Изучите друг у друга разные зоны чувствительной зоны тела и исследуйте их на протяжении игривых минутных сессий."_
+
+            ✅ **Good Example (human-like):**  
+            _"Закройте глаза и исследуйте чувствительные зоны друг друга, ориентируясь только на ощущения."_`
           : `\n\nRespond in English.`;
 
       console.log('Prompt for user ', userId, ':', prompt);

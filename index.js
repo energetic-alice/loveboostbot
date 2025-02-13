@@ -21,7 +21,7 @@ i18next
   .use(middleware.LanguageDetector)
   .init(
     {
-      fallbackLng: 'en',
+      fallbackLng: 'ru',
       backend: {
         loadPath: './locales/{{lng}}.json',
       },
@@ -225,19 +225,77 @@ bot.action(/done_(.+)/, ctx => {
   ctx.reply(i18next.t('done_response'));
 });
 
-// Ежедневная рассылка идей в 9:00 утра по времени сервера
-cron.schedule('0 9 * * *', () => {
-  db.getAllUsers(users => {
-    users.forEach(user => {
-      t(user.id, 'daily_reminder', text => {
-        // Создаём искусственный ctx, чтобы sendIdea работала корректно
-        const fakeCtx = {
-          from: { id: user.id },
-          reply: (message, extra) => bot.telegram.sendMessage(user.id, message, extra),
-          deleteMessage: messageId => bot.telegram.deleteMessage(user.id, messageId),
-        };
+// Пользователь хочет идею
+bot.action('send_idea', async ctx => {
+  const userId = ctx.from.id;
 
-        sendIdea(fakeCtx);
+  // Если пользователь был в заморозке, размораживаем его
+  db.getSnoozeStatus(userId, isSnoozed => {
+    if (isSnoozed) {
+      console.log(`⏳ Пользователь ${userId} размораживается вручную`);
+      db.unsnoozeUser(userId);
+      ctx.reply(i18next.t('unsnoozed')); // "Ты снова в игре! Вот твоя идея: 🎉"
+    }
+
+    db.getLanguage(userId, async lang => {
+      sendIdea(ctx, lang);
+    });
+  });
+});
+
+// Пользователь пропускает только сегодня
+bot.action('skip_idea', ctx => {
+  console.log(`❌ Пользователь ${ctx.from.id} отказался от идеи сегодня`);
+  ctx.reply(i18next.t('idea_skipped')); // "Ок! Не буду присылать сегодня. 😊"
+});
+
+// Пользователь откладывает идеи на неделю
+bot.action('snooze_week', ctx => {
+  const userId = ctx.from.id;
+  console.log(`⏳ Пользователь ${userId} отложил идеи на неделю`);
+
+  db.snoozeUserForWeek(userId);
+  ctx.reply(
+    i18next.t('snoozed_for_week'),
+    Markup.inlineKeyboard([[Markup.button.callback(i18next.t('restore_subscription'), 'restore_subscription')]]),
+  );
+});
+
+// Пользователь хочет возобновить рассылку
+bot.action('restore_subscription', async ctx => {
+  const userId = ctx.from.id;
+
+  db.unsnoozeUser(userId); // ❄️ Снимаем заморозку
+
+  ctx.reply(i18next.t('subscription_restored')); // "Ты снова будешь получать ежедневные идеи! 😊"
+});
+
+// Ежедневная проверка перед отправкой
+cron.schedule('0 9 * * *', () => {
+  console.log('⏰ Рассылка предложений запущена! Время:', new Date().toLocaleString());
+
+  db.getAllUsers(users => {
+    console.log(`👥 Найдено пользователей: ${users.length}`);
+
+    users.forEach(user => {
+      db.getSnoozeStatus(user.id, isSnoozed => {
+        if (!isSnoozed) {
+          t(user.id, 'daily_question', text => {
+            console.log(`📩 Спрашиваем пользователя ${user.id}, хочет ли он идею`);
+
+            bot.telegram.sendMessage(
+              user.id,
+              text, // "Хочешь получить новую идею сегодня? 💡"
+              Markup.inlineKeyboard([
+                [Markup.button.callback(i18next.t('button_yes'), `send_idea`)],
+                [Markup.button.callback(i18next.t('button_no'), `skip_idea`)],
+                [Markup.button.callback(i18next.t('button_snooze'), `snooze_week`)],
+              ]),
+            );
+          });
+        } else {
+          console.log(`⏳ Пользователь ${user.id} отложил идеи на неделю, пропускаем.`);
+        }
       });
     });
   });
