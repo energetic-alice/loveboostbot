@@ -19,16 +19,22 @@ console.log(process.env.BOT_TOKEN);
 i18next
   .use(Backend)
   .use(middleware.LanguageDetector)
-  .init({
-    fallbackLng: 'en',
-    backend: {
-      loadPath: './locales/{{lng}}.json',
+  .init(
+    {
+      fallbackLng: 'en',
+      backend: {
+        loadPath: './locales/{{lng}}.json',
+      },
+      detection: {
+        order: ['querystring', 'cookie'],
+        caches: ['cookie'],
+      },
     },
-    detection: {
-      order: ['querystring', 'cookie'],
-      caches: ['cookie'],
+    async () => {
+      console.log('🌍 Локализация загружена');
+      await setBotCommands(); // ✅ Устанавливаем команды после загрузки локализации
     },
-  });
+  );
 
 // Используем переменные окружения
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -47,8 +53,6 @@ function t(userId, key, callback) {
 async function setBotCommands() {
   bot.telegram.setMyCommands([{ command: 'feedback', description: '💌' }]);
 }
-
-setBotCommands();
 
 // Старт
 bot.start(ctx => {
