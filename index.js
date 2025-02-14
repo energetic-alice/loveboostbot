@@ -288,7 +288,7 @@ cron.schedule('0 9 * * *', () => {
               text, // "Хочешь получить новую идею сегодня? 💡"
               Markup.inlineKeyboard([
                 [Markup.button.callback(i18next.t('button_yes'), `send_idea`)],
-                [Markup.button.callback(i18next.t('button_no'), `skip_idea`)],
+                [Markup.button.callback(i18next.t('button_skip'), `skip_idea`)],
                 [Markup.button.callback(i18next.t('button_snooze'), `snooze_week`)],
               ]),
             );
