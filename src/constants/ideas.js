@@ -23,8 +23,8 @@ const spicyIdeas = {
     { id: 12, text: 'Send a flirty voice message during the day.' },
     { id: 13, text: "Play a 'secret fantasies' game together." },
     { id: 16, text: 'Blindfold your partner and surprise them with gentle touches using different textures.' },
-    { id: 17, text: 'Play a “truth or dare” game with a spicy twist.' },
-    { id: 18, text: 'Try role-playing a fantasy you’ve never explored before.' },
+    { id: 17, text: 'Play a "truth or dare" game with a spicy twist.' },
+    { id: 18, text: "Try role-playing a fantasy you've never explored before." },
     { id: 19, text: 'Give each other slow massages with scented oils.' },
     { id: 20, text: 'Exchange secret notes describing your favorite intimate moments.' },
   ],
@@ -40,10 +40,13 @@ const spicyIdeas = {
   ],
 };
 
-// Функция для получения случайной идеи
-function getRandomIdea(lang = 'en', type = 'romantic') {
+const SUPPORTED_LANGUAGES = ['en', 'ru'];
+const IDEA_TYPES = ['romantic', 'spicy'];
+
+function getExamplesForLanguage(language, type) {
+  const lang = SUPPORTED_LANGUAGES.includes(language) ? language : 'en';
   const list = type === 'spicy' ? spicyIdeas[lang] : romanticIdeas[lang];
-  return list[Math.floor(Math.random() * list.length)];
+  return list || (type === 'spicy' ? spicyIdeas.en : romanticIdeas.en);
 }
 
-export { getRandomIdea, romanticIdeas, spicyIdeas };
+export { SUPPORTED_LANGUAGES, IDEA_TYPES, getExamplesForLanguage };

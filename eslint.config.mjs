@@ -1,9 +1,9 @@
 import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
+  { ignores: ['node_modules/**', 'dist/**', '*.config.js', '*.config.mjs'] },
   {
     files: ['**/*.js'],
-    ignores: ['node_modules', 'dist'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

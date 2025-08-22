@@ -1,18 +1,18 @@
 {
   "name": "love-bot",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
-"scripts": {
-  "start": "node index.js",
-  "start:test": "TEST_BOT=true node index.js",
-  "lint": "eslint .",
-  "lint:fix": "eslint . --fix"
-  },
-  "keywords": [],
+  "description": "Telegram bot for couples: romantic and date ideas with OpenAI, i18n (EN/RU)",
+  "keywords": ["telegram-bot", "telegraf", "openai", "couples", "date-ideas", "i18n"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "scripts": {
+    "start": "node src/index.js",
+    "start:test": "TEST_BOT=true node src/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
   "dependencies": {
     "dotenv": "^16.4.7",
     "i18next": "^24.2.2",
@@ -20,7 +20,6 @@
     "i18next-http-middleware": "^3.7.1",
     "node-cron": "^3.0.3",
     "openai": "^4.83.0",
-    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
     "telegraf": "^4.16.3"
   },
